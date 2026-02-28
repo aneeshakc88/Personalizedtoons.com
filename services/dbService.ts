@@ -8,12 +8,9 @@ import { OrderState } from '../types';
 // ------------------------------------------------------------------
 // CONFIGURATION
 // ------------------------------------------------------------------
-// Use import.meta.env for Vite production, fallback to process.env
-// @ts-ignore
-const getEnv = (key: string) => import.meta.env[key] || process.env[key.replace('VITE_', '')];
-
-const SUPABASE_URL = getEnv('VITE_SUPABASE_URL') || 'https://jqumzwyikbfbytfbafjm.supabase.co'; 
-const SUPABASE_KEY = getEnv('VITE_SUPABASE_KEY') || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImpxdW16d3lpa2JmYnl0ZmJhZmptIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzEwODMxOTksImV4cCI6MjA4NjY1OTE5OX0.6YT4Umg-cr2APML-9bcZ7ZPTv5xPAZVT4-lYrZbW-ew';    
+// Use import.meta.env for Vite (works in both dev and production)
+const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL || 'https://jqumzwyikbfbytfbafjm.supabase.co';
+const SUPABASE_KEY = import.meta.env.VITE_SUPABASE_KEY || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImpxdW16d3lpa2JmYnl0ZmJhZmptIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzEwODMxOTksImV4cCI6MjA4NjY1OTE5OX0.6YT4Umg-cr2APML-9bcZ7ZPTv5xPAZVT4-lYrZbW-ew';
 
 // Initialize Supabase Client
 if (SUPABASE_URL.includes('YOUR_SUPABASE') || SUPABASE_KEY.includes('YOUR_SUPABASE')) {
@@ -35,7 +32,7 @@ const base64ToBlob = (base64: string): Blob => {
         // Handle cases where the prefix might be missing or different
         const arr = base64.split(',');
         const dataStr = arr.length > 1 ? arr[1] : arr[0];
-        
+
         // Guess mime type if possible, otherwise default to jpeg
         let mime = 'image/jpeg';
         if (arr.length > 1) {
@@ -62,7 +59,7 @@ const base64ToBlob = (base64: string): Blob => {
 const uploadImageToSupabase = async (base64Data: string, folder: string): Promise<string> => {
     try {
         if (!base64Data) throw new Error("No image data provided");
-        
+
         const blob = base64ToBlob(base64Data);
         // Generate a clean filename
         const ext = blob.type.split('/')[1] || 'jpg';
@@ -129,7 +126,7 @@ const incrementVoucherUsage = async (code: string) => {
     try {
         // First get current count
         const { data } = await supabase.from('coupons').select('times_used').eq('code', code).single();
-        
+
         if (data) {
             await supabase
                 .from('coupons')
@@ -156,7 +153,7 @@ export const saveOrderToDatabase = async (order: OrderState): Promise<SavedOrder
         // 1. Upload Images (Parallel uploads for speed)
         // We ensure we have the URLs before creating the database row.
         const uploadPromises = [];
-        
+
         if (order.uploadedImage) {
             uploadPromises.push(uploadImageToSupabase(order.uploadedImage, 'originals'));
         } else {
@@ -168,7 +165,7 @@ export const saveOrderToDatabase = async (order: OrderState): Promise<SavedOrder
         } else {
             // It's okay if preview is missing (rare case), but usually it exists.
             // We pass a dummy resolved promise to keep array alignment if needed, or just allow null.
-            uploadPromises.push(Promise.resolve(null)); 
+            uploadPromises.push(Promise.resolve(null));
         }
 
         const [originalImageUrl, generatedImageUrl] = await Promise.all(uploadPromises);
@@ -240,9 +237,9 @@ export const getOrderHistory = async (): Promise<SavedOrder[]> => {
 
     return data.map((row: any) => ({
         selectedTemplateId: row.template_id,
-        uploadedImage: row.original_image_url, 
+        uploadedImage: row.original_image_url,
         imageAnalysis: null,
-        generatedPreview: row.generated_image_url, 
+        generatedPreview: row.generated_image_url,
         details: {
             childName: row.child_name,
             age: row.child_age,

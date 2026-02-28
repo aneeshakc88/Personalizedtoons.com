@@ -48,4 +48,5 @@ export interface OrderState {
   paymentStatus?: 'paid' | 'voucher_free' | 'pending';
   paymentMethod?: 'credit_card' | 'voucher';
   finalAmount?: number;
+  paymentIntentId?: string; // Stripe payment intent ID
 }
