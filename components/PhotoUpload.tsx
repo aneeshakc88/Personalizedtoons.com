@@ -150,56 +150,13 @@ export const PhotoUpload: React.FC<Props> = ({
         return selectedStyle || template?.stylePrompt || "3D Pixar-style animated movie character";
     };
 
-    // const handleGeneratePreview = async () => {
-    //     // Prevent multiple simultaneous requests
-    //     if (isGeneratingPreview) {
-    //         console.log('Already generating preview, ignoring duplicate request');
-    //         return;
-    //     }
+    const handleContinue = async () => {
+        // Prevent multiple simultaneous requests
+        if (isGeneratingPreview) {
+            console.log('Already generating preview, ignoring duplicate request');
+            return;
+        }
 
-    //     // 1. Check Image
-    //     if (!uploadedImage || !analysis || !analysis.isValid) {
-    //         setImageError("Please upload a valid photo before proceeding.");
-    //         const uploadSection = document.getElementById('upload-section');
-    //         uploadSection?.scrollIntoView({ behavior: 'smooth' });
-    //         return;
-    //     }
-
-    //     // 2. Check Form
-    //     if (!validateForm()) {
-    //         return;
-    //     }
-
-    //     // 3. Determine Style
-    //     if (selectedStyle === 'custom' && !customStylePrompt.trim()) {
-    //         setImageError("Please describe your custom style in the text box.");
-    //         return;
-    //     }
-
-    //     const styleToUse = getActiveStylePrompt();
-
-    //     // 4. Generate
-    //     setIsGeneratingPreview(true);
-    //     setImageError(null); // Clear previous errors
-
-    //     try {
-    //         const preview = await generateCharacterPreview(
-    //             uploadedImage, 
-    //             details.age, 
-    //             details.gender,
-    //             styleToUse
-    //         );
-    //         onPreviewGenerated(preview);
-    //         setShowPreviewModal(true);
-    //     } catch (error: any) {
-    //         console.error('Preview generation error:', error);
-    //         setImageError(error?.message || "Failed to generate preview. Please try again.");
-    //     } finally {
-    //         setIsGeneratingPreview(false);
-    //     }
-    // };
-
-    const handleContinue = () => {
         // 1. Check Image
         if (!uploadedImage || !analysis || !analysis.isValid) {
             setImageError("Please upload a valid photo before proceeding.");
@@ -219,8 +176,27 @@ export const PhotoUpload: React.FC<Props> = ({
             return;
         }
 
-        // 4. Submit directly without preview
-        handleFinalSubmit();
+        const styleToUse = getActiveStylePrompt();
+
+        // 4. Generate
+        setIsGeneratingPreview(true);
+        setImageError(null); // Clear previous errors
+
+        try {
+            const preview = await generateCharacterPreview(
+                uploadedImage,
+                details.age,
+                details.gender,
+                styleToUse
+            );
+            onPreviewGenerated(preview);
+            setShowPreviewModal(true);
+        } catch (error: any) {
+            console.error('Preview generation error:', error);
+            setImageError(error?.message || "Failed to generate preview. Please try again.");
+        } finally {
+            setIsGeneratingPreview(false);
+        }
     };
 
     const handleFinalSubmit = () => {
@@ -620,35 +596,25 @@ export const PhotoUpload: React.FC<Props> = ({
                 </div>
 
                 <div className="pt-4">
-                    {/* 
                     <button
-                        onClick={handleGeneratePreview}
+                        onClick={handleContinue}
                         disabled={isGeneratingPreview}
-                        className={`w-full md:w-auto px-8 py-3 font-bold rounded-full transition-all shadow-lg flex items-center justify-center gap-2
-                ${isGeneratingPreview
-                                ? 'bg-slate-100 text-slate-400 cursor-wait pointer-events-none'
-                                : 'bg-slate-900 text-white hover:bg-slate-800 hover:shadow-xl'}`}
+                        className={`w-full md:w-auto px-10 py-4 text-lg font-bold rounded-full transition-all shadow-lg flex items-center justify-center gap-2 transform ${isGeneratingPreview
+                                ? 'bg-indigo-400 text-white cursor-wait pointer-events-none'
+                                : 'bg-indigo-600 text-white hover:bg-indigo-700 hover:shadow-xl hover:shadow-indigo-200 hover:-translate-y-0.5'
+                            }`}
                     >
                         {isGeneratingPreview ? (
                             <>
                                 <Loader2 className="w-5 h-5 animate-spin" />
-                                Generating Character Preview...
+                                Generating Preview...
                             </>
                         ) : (
                             <>
-                                See Character Preview
-                                <Eye className="w-5 h-5" />
+                                Next
+                                <ArrowRight className="w-5 h-5" />
                             </>
                         )}
-                    </button>
-                    */}
-
-                    <button
-                        onClick={handleContinue}
-                        className="w-full md:w-auto px-10 py-4 text-lg font-bold rounded-full transition-all shadow-lg flex items-center justify-center gap-2 bg-indigo-600 text-white hover:bg-indigo-700 hover:shadow-xl hover:shadow-indigo-200 transform hover:-translate-y-0.5"
-                    >
-                        Next
-                        <ArrowRight className="w-5 h-5" />
                     </button>
                 </div>
 
